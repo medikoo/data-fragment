@@ -23,17 +23,17 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 		if (this._fragments.has(ensureFragment(fragment))) return;
 		this._fragments.add(fragment);
 		fragment.on('update', this._onUpdate);
-		forEach(fragment.data, this._onItemUpdate, this);
+		forEach(fragment.dataMap, this._onItemUpdate, this);
 	}),
 	deleteFragment: d(function (fragment) {
 		if (!this._fragments.has(ensureFragment(fragment))) return;
 		this._fragments.delete(fragment);
 		fragment.off('update', this._onUpdate);
-		keys(fragment.data).forEach(this._onItemDelete, this);
+		keys(fragment.dataMap).forEach(this._onItemDelete, this);
 	}),
 	_onItemUpdate: d(function (event, id) { this.update(id, event); }),
 	_onItemDelete: d(function (id) {
-		if (some(this._fragments, function (fragment) { return fragment.data[id]; })) {
+		if (some(this._fragments, function (fragment) { return fragment.dataMap[id]; })) {
 			return;
 		}
 		this.delete(id);

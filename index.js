@@ -16,23 +16,23 @@ var DataFragment = module.exports = function () {
 
 ee(Object.defineProperties(DataFragment.prototype, assign({
 	update: d(function (id, nu) {
-		var old = this.data[ensureString(id)];
+		var old = this.dataMap[ensureString(id)];
 		ensureObject(nu);
 		if (old && (old.stamp >= nu.stamp)) return;
-		this.data[id] = nu;
+		this.dataMap[id] = nu;
 		if (this._deleted[id]) delete this._deleted[id];
 		this._updated[id] = nu;
 		this._scheduleEmit();
 	}),
 	delete: d(function (id) {
-		if (!this.data[ensureString(id)]) return;
-		delete this.data[id];
+		if (!this.dataMap[ensureString(id)]) return;
+		delete this.dataMap[id];
 		if (this._updated[id]) delete this._updated[id];
 		this._deleted[id] = true;
 		this._scheduleEmit();
 	})
 }, lazy({
-	data: d(function () { return create(null); }),
+	dataMap: d(function () { return create(null); }),
 	_updated: d(function () { return create(null); }),
 	_deleted: d(function () { return create(null); }),
 	_scheduleEmit: d(function () {
