@@ -11,7 +11,7 @@ var assign         = require('es5-ext/object/assign')
   , ensureFragment = require('./ensure')
   , DataFragment   = require('./')
 
-  , create = Object.create;
+  , create = Object.create, keys = Object.keys;
 
 var DataFragmentGroup = module.exports = setPrototypeOf(function () {
 	if (!(this instanceof DataFragmentGroup)) return new DataFragmentGroup();
@@ -29,10 +29,10 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 		if (!this._fragments.has(ensureFragment(fragment))) return;
 		this._fragments.delete(fragment);
 		fragment.off('update', this._onUpdate);
-		forEach(fragment.data, this._onItemDelete, this);
+		keys(fragment.data).forEach(this._onItemDelete, this);
 	}),
 	_onItemUpdate: d(function (event, id) { this.update(id, event); }),
-	_onItemDelete: d(function (event, id) {
+	_onItemDelete: d(function (id) {
 		if (some(this._fragments, function (fragment) { return fragment.data[id]; })) {
 			return;
 		}
@@ -43,6 +43,6 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 }), autoBind({
 	_onUpdate: d(function (data) {
 		forEach(data.updated, this._onItemUpdate, this);
-		forEach(data.deleted, this._onItemDelete, this);
+		keys(data.deleted).forEach(this._onItemDelete, this);
 	})
 })));
