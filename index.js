@@ -1,9 +1,11 @@
 'use strict';
 
 var assign       = require('es5-ext/object/assign')
+  , isEmpty      = require('es5-ext/object/is-empty')
   , ensureString = require('es5-ext/object/validate-stringifiable-value')
   , ensureObject = require('es5-ext/object/valid-object')
   , d            = require('d')
+  , autoBind     = require('d/auto-bind')
   , lazy         = require('d/lazy')
   , ee           = require('event-emitter')
   , once         = require('timers-ext/once')
@@ -31,15 +33,16 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 		this._deleted[id] = true;
 		this._scheduleEmit();
 	})
-}, lazy({
+}, autoBind({
+	flush: d(function () {
+		if (isEmpty(this._updated) && isEmpty(this._deleted)) return;
+		this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
+		this._updated = create(null);
+		this._deleted = create(null);
+	})
+}), lazy({
 	dataMap: d(function () { return create(null); }),
 	_updated: d(function () { return create(null); }),
 	_deleted: d(function () { return create(null); }),
-	_scheduleEmit: d(function () {
-		return once(function () {
-			this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
-			this._updated = create(null);
-			this._deleted = create(null);
-		}.bind(this));
-	})
+	_scheduleEmit: d(function () { return once(this.flush); })
 }))));
