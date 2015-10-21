@@ -32,13 +32,15 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 		if (this._updated[id]) delete this._updated[id];
 		this._deleted[id] = true;
 		this._scheduleEmit();
+	}),
+	promise: d.gs(function () { return this._promise; }, function (promise) {
+		this._promise = promise;
+		// Ensure flush is done before eny external entity registers listener for promise
+		promise.done(this.flush);
 	})
 }, autoBind({
 	flush: d(function () {
-		if (this.promise && !this.promise.resolved) {
-			this.promise.done(this.flush);
-			return;
-		}
+		if (this.promise && !this.promise.resolved) return;
 		if (isEmpty(this._updated) && isEmpty(this._deleted)) return;
 		this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
 		this._updated = create(null);
