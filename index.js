@@ -39,7 +39,7 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 }, autoBind({
 	flush: d(function () {
 		var hasUpdates;
-		if (this.promise && !this.promise.resolved) return;
+		if (this.promise && !this.promise.resolved) return this;
 		forEach(this._updated, function (value, id) {
 			hasUpdates = true;
 			this.dataMap[id] = value;
@@ -48,7 +48,7 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 			hasUpdates = true;
 			delete this.dataMap[id];
 		}, this);
-		if (!hasUpdates) return;
+		if (!hasUpdates) return this;
 		this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
 		this._updated = create(null);
 		this._deleted = create(null);
