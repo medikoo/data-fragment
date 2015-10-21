@@ -52,6 +52,7 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 		this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
 		this._updated = create(null);
 		this._deleted = create(null);
+		return this;
 	})
 }), lazy({
 	dataMap: d(function () { return create(null); }),
