@@ -35,6 +35,10 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 	})
 }, autoBind({
 	flush: d(function () {
+		if (this.promise && !this.promise.resolved) {
+			this.promise.done(this.flush);
+			return;
+		}
 		if (isEmpty(this._updated) && isEmpty(this._deleted)) return;
 		this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
 		this._updated = create(null);
