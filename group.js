@@ -8,6 +8,7 @@ var includes       = require('es5-ext/array/#/contains')
   , d              = require('d')
   , autoBind       = require('d/auto-bind')
   , lazy           = require('d/lazy')
+  , DynamicQueue   = require('deferred/dynamic-queue')
   , ensureFragment = require('./ensure')
   , DataFragment   = require('./')
 
@@ -24,6 +25,13 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 		this._fragments.push(fragment);
 		fragment.on('update', this._onUpdate);
 		forEach(fragment.dataMap, this._onItemUpdate, this);
+		if (!fragment.promise || fragment.promise.resolved) return;
+		if (this.queue && !this.promise.resolved) {
+			this.queue.add(fragment.promise);
+			return;
+		}
+		this.queue = new DynamicQueue([fragment.promise]);
+		this.promise = this.queue.promise;
 	}),
 	deleteFragment: d(function (fragment) {
 		if (!includes.call(this._fragments, ensureFragment(fragment))) return;

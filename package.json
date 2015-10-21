@@ -17,6 +17,7 @@
     "es5-ext": "^0.10.7",
     "es6-set": "^0.1.1",
     "d": "^0.1.1",
+    "deferred": "git://github.com/medikoo/deferred.git#282af761f41a654321fd060fc587ab13fe100915",
     "event-emitter": "^0.3.3",
     "timers-ext": "0.1"
   },
