@@ -1,7 +1,7 @@
 'use strict';
 
 var assign       = require('es5-ext/object/assign')
-  , isEmpty      = require('es5-ext/object/is-empty')
+  , forEach      = require('es5-ext/object/for-each')
   , ensureString = require('es5-ext/object/validate-stringifiable-value')
   , ensureObject = require('es5-ext/object/valid-object')
   , d            = require('d')
@@ -10,7 +10,7 @@ var assign       = require('es5-ext/object/assign')
   , ee           = require('event-emitter')
   , once         = require('timers-ext/once')
 
-  , create = Object.create;
+  , keys = Object.keys, create = Object.create;
 
 var DataFragment = module.exports = function () {
 	if (!(this instanceof DataFragment)) return new DataFragment();
@@ -18,17 +18,15 @@ var DataFragment = module.exports = function () {
 
 ee(Object.defineProperties(DataFragment.prototype, assign({
 	update: d(function (id, nu) {
-		var old = this.dataMap[ensureString(id)];
+		var old = this._updated[id] || this.dataMap[ensureString(id)];
 		ensureObject(nu);
-		if (old && (old.stamp >= nu.stamp)) return;
-		this.dataMap[id] = nu;
 		if (this._deleted[id]) delete this._deleted[id];
+		if (old && (old.stamp >= nu.stamp)) return;
 		this._updated[id] = nu;
 		this._scheduleEmit();
 	}),
 	delete: d(function (id) {
-		if (!this.dataMap[ensureString(id)]) return;
-		delete this.dataMap[id];
+		if (!this.dataMap[ensureString(id)] && !this._updated[id]) return;
 		if (this._updated[id]) delete this._updated[id];
 		this._deleted[id] = true;
 		this._scheduleEmit();
@@ -40,8 +38,17 @@ ee(Object.defineProperties(DataFragment.prototype, assign({
 	})
 }, autoBind({
 	flush: d(function () {
+		var hasUpdates;
 		if (this.promise && !this.promise.resolved) return;
-		if (isEmpty(this._updated) && isEmpty(this._deleted)) return;
+		forEach(this._updated, function (value, id) {
+			hasUpdates = true;
+			this.dataMap[id] = value;
+		}, this);
+		keys(this._deleted).forEach(function (id) {
+			hasUpdates = true;
+			delete this.dataMap[id];
+		}, this);
+		if (!hasUpdates) return;
 		this.emit('update', { target: this, updated: this._updated, deleted: this._deleted });
 		this._updated = create(null);
 		this._deleted = create(null);

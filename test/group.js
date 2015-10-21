@@ -25,17 +25,12 @@ module.exports = function (T, a, d) {
 
 	setImmediate(function () {
 		var e5;
+		a(savedEvents.length, 1);
 		a.deep(savedEvents[0], {
 			target: group,
-			updated: { aside: e6 },
+			updated: { aside: e6, foo: e4, www: e3 },
 			deleted: {}
 		});
-		a.deep(savedEvents[1], {
-			target: group,
-			updated: { foo: e4, www: e3 },
-			deleted: {}
-		});
-		a(savedEvents.length, 2);
 		savedEvents = [];
 		fragment2.update('efefee', e2);
 		fragment2.update('aside', e6);
