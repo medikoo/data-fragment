@@ -21,20 +21,12 @@ var DataFragmentGroup = module.exports = setPrototypeOf(function () {
 DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 	constructor: d(DataFragmentGroup),
 	addFragment: d(function (fragment) {
-		var queue;
 		if (includes.call(this._fragments, ensureFragment(fragment))) return;
 		this._fragments.push(fragment);
 		fragment.on('update', this._onUpdate);
 		forEach(fragment.dataMap, this._onItemUpdate, this);
 		if (!fragment.promise || fragment.promise.resolved) return;
-		if (this.queue && !this.promise.resolved) {
-			this.queue.add(fragment.promise);
-			return;
-		}
-		queue = [fragment.promise];
-		if (this.promise && (this.promise !== this.queue)) queue.push(this.promise);
-		this.queue = new DynamicQueue(queue);
-		this.promise = this.queue.promise;
+		this.promise = fragment.promise;
 	}),
 	deleteFragment: d(function (fragment) {
 		if (!includes.call(this._fragments, ensureFragment(fragment))) return;
@@ -48,6 +40,17 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 			return;
 		}
 		this.delete(id);
+	}),
+	promise: d.gs(function () {
+		if (this.queue) return this.queue.promise;
+	}, function (promise) {
+		if (promise.resolved) return;
+		if (this.queue && !this.queue.promise.resolved) {
+			this.queue.add(promise);
+			return;
+		}
+		this.queue = new DynamicQueue([promise]);
+		this.queue.promise.done(this.flush);
 	})
 }, lazy({
 	_fragments: d(function () { return []; })
