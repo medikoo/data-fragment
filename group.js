@@ -21,6 +21,7 @@ var DataFragmentGroup = module.exports = setPrototypeOf(function () {
 DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 	constructor: d(DataFragmentGroup),
 	addFragment: d(function (fragment) {
+		var queue;
 		if (includes.call(this._fragments, ensureFragment(fragment))) return;
 		this._fragments.push(fragment);
 		fragment.on('update', this._onUpdate);
@@ -30,7 +31,9 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 			this.queue.add(fragment.promise);
 			return;
 		}
-		this.queue = new DynamicQueue([fragment.promise]);
+		queue = [fragment.promise];
+		if (this.promise && (this.promise !== this.queue)) queue.push(this.promise);
+		this.queue = new DynamicQueue(queue);
 		this.promise = this.queue.promise;
 	}),
 	deleteFragment: d(function (fragment) {
