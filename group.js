@@ -12,7 +12,8 @@ var includes       = require('es5-ext/array/#/contains')
   , ensureFragment = require('./ensure')
   , DataFragment   = require('./')
 
-  , create = Object.create, keys = Object.keys;
+  , create = Object.create, keys = Object.keys
+  , flush = DataFragment.prototype.flush;
 
 var DataFragmentGroup = module.exports = setPrototypeOf(function () {
 	if (!(this instanceof DataFragmentGroup)) return new DataFragmentGroup();
@@ -55,6 +56,10 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 }, lazy({
 	_fragments: d(function () { return []; })
 }), autoBind({
+	flush: d(function () {
+		this._fragments.forEach(function (fragment) { fragment.flush(); });
+		return flush.call(this);
+	}),
 	_onUpdate: d(function (data) {
 		forEach(data.updated, this._onItemUpdate, this);
 		keys(data.deleted).forEach(this._onItemDelete, this);
