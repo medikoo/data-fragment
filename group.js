@@ -23,6 +23,9 @@ var DataFragmentGroup = module.exports = setPrototypeOf(function () {
 DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 	constructor: d(DataFragmentGroup),
 	addFragment: d(function (fragment) {
+		if (fragment === this) {
+			throw new Error("Circular structure. Cannot add group fragment as its child fragment");
+		}
 		if (includes.call(this._fragments, ensureFragment(fragment))) return;
 		this._fragments.push(fragment);
 		fragment.on('update', this._onUpdate);
