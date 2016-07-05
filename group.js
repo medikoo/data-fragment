@@ -30,7 +30,7 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 		this._fragments.push(fragment);
 		fragment.on('update', this._onUpdate);
 		forEach(fragment.dataMap, this._onItemUpdate, this);
-		if (!fragment.promise || fragment.promise.resolved) return;
+		if (!fragment.promise || (fragment.promise.resolved && !fragment.promise.failed)) return;
 		this.promise = fragment.promise;
 	}),
 	deleteFragment: d(function (fragment) {
@@ -49,7 +49,8 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 	promise: d.gs(function () {
 		var unresolved;
 		this._fragments.forEach(function (fragment) {
-			if (fragment.promise && !fragment.promise.resolved && !fragment.promise[this._id]) {
+			if (fragment.promise && !fragment.promise.resolved && !fragment.promise.failed &&
+					!fragment.promise[this._id]) {
 				if (!unresolved) unresolved = [];
 				defineProperty(fragment.promise,  this._id, d(true));
 				unresolved.push(fragment.promise);
@@ -63,7 +64,7 @@ DataFragmentGroup.prototype = create(DataFragment.prototype, assign({
 		}
 		if (this.queue) return this.queue.promise;
 	}, function (promise) {
-		if (promise.resolved || promise[this._id]) return;
+		if ((promise.resolved && !promise.failed) || promise[this._id]) return;
 		defineProperty(promise,  this._id, d(true));
 		if (this.queue && !this.queue.promise.resolved) {
 			this.queue.add(promise);
